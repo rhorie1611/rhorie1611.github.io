@@ -262,8 +262,6 @@
   <button class="btn btn-outline btn-small" id="btnBackFromSettings">戻る</button>
 </div>
 
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ---- Storage ----
 const STORE = {
@@ -294,6 +292,49 @@ function fmtDuration(ms) {
   return m === 0 ? `${h}時間` : `${h}時間${m}分`;
 }
 
+// ---- Config ----
+function getConfig() {
+  return {
+    clientId:   STORE.get('clientId')   || '',
+    calendarId: STORE.get('calendarId') || 'primary',
+  };
+}
+
+// ---- OAuth (redirect flow for iOS Safari) ----
+function redirectToAuth() {
+  const cfg = getConfig();
+  const redirectUri = location.origin + location.pathname;
+  const params = new URLSearchParams({
+    client_id:     cfg.clientId,
+    redirect_uri:  redirectUri,
+    response_type: 'token',
+    scope:         'https://www.googleapis.com/auth/calendar.events',
+  });
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+}
+
+function parseTokenFromHash() {
+  const hash = location.hash.substring(1);
+  if (!hash) return null;
+  const p = new URLSearchParams(hash);
+  const token = p.get('access_token');
+  const expiresIn = p.get('expires_in');
+  if (!token) return null;
+  return { token, expiry: Date.now() + expiresIn * 1000 };
+}
+
+function getCachedToken() {
+  const t = STORE.get('oauthToken');
+  const e = STORE.get('oauthExpiry');
+  if (t && e && +e > Date.now() + 60000) return t;
+  return null;
+}
+
+function saveToken(tokenObj) {
+  STORE.set('oauthToken', tokenObj.token);
+  STORE.set('oauthExpiry', tokenObj.expiry);
+}
+
 // ---- Clock ----
 function updateClock() {
   const now = new Date();
@@ -319,7 +360,6 @@ function updateMainState() {
     document.getElementById('sleepStartLabel').textContent = fmtTime(roundTo15(new Date(+sleeping)));
   }
 }
-updateMainState();
 
 // ---- Sleep button ----
 document.getElementById('btnSleep').addEventListener('click', () => {
@@ -334,12 +374,28 @@ document.getElementById('btnSleep').addEventListener('click', () => {
 });
 
 // ---- Wake button ----
-document.getElementById('btnWake').addEventListener('click', async () => {
+document.getElementById('btnWake').addEventListener('click', () => {
   const sleepRaw = STORE.get('sleepStart');
   if (!sleepRaw) return;
 
+  // Save wake time for after OAuth redirect
+  STORE.set('pendingWake', Date.now());
+
+  const token = getCachedToken();
+  if (token) {
+    processPendingWake(token);
+  } else {
+    redirectToAuth();
+  }
+});
+
+async function processPendingWake(token) {
+  const sleepRaw = STORE.get('sleepStart');
+  const wakeRaw  = STORE.get('pendingWake');
+  if (!sleepRaw || !wakeRaw) return;
+
   const startRounded = roundTo15(new Date(+sleepRaw));
-  const endRounded   = roundTo15(new Date());
+  const endRounded   = roundTo15(new Date(+wakeRaw));
 
   document.getElementById('doneStart').textContent = fmtTime(startRounded);
   document.getElementById('doneEnd').textContent   = fmtTime(endRounded);
@@ -351,9 +407,10 @@ document.getElementById('btnWake').addEventListener('click', async () => {
   document.getElementById('doneMsg').className = 'done-msg';
 
   STORE.del('sleepStart');
+  STORE.del('pendingWake');
 
   try {
-    await createCalendarEvent(startRounded, endRounded);
+    await createCalendarEvent(token, startRounded, endRounded);
     document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
     document.getElementById('doneMsg').className = 'done-msg success';
   } catch (e) {
@@ -361,11 +418,12 @@ document.getElementById('btnWake').addEventListener('click', async () => {
     document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
     document.getElementById('doneMsg').className = 'done-msg error';
   }
-});
+}
 
 document.getElementById('btnCancelSleep').addEventListener('click', () => {
   if (confirm('就寝記録をキャンセルしますか？')) {
     STORE.del('sleepStart');
+    STORE.del('pendingWake');
     updateMainState();
   }
 });
@@ -376,13 +434,6 @@ document.getElementById('btnDoneBack').addEventListener('click', () => {
 });
 
 // ---- Settings ----
-function getConfig() {
-  return {
-    clientId:   STORE.get('clientId')   || '',
-    calendarId: STORE.get('calendarId') || 'primary',
-  };
-}
-
 function loadSettingsUI() {
   const cfg = getConfig();
   document.getElementById('inputClientId').value   = cfg.clientId;
@@ -404,66 +455,21 @@ document.getElementById('btnSaveSettings').addEventListener('click', () => {
   if (!calendarId) { alert('カレンダーIDを入力してください'); return; }
   STORE.set('clientId', clientId);
   STORE.set('calendarId', calendarId);
-  tokenCache = null; // reset token on settings change
+  STORE.del('oauthToken');
+  STORE.del('oauthExpiry');
   alert('保存しました');
   showScreen('main');
   updateMainState();
 });
 
 // ---- Google Calendar API ----
-let tokenCache = null;
-
-function getAccessToken(clientId) {
-  return new Promise((resolve, reject) => {
-    if (tokenCache && tokenCache.expiry > Date.now() + 60000) {
-      return resolve(tokenCache.token);
-    }
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: 'https://www.googleapis.com/auth/calendar.events',
-      callback: (resp) => {
-        if (resp.error) return reject(new Error(resp.error));
-        tokenCache = {
-          token: resp.access_token,
-          expiry: Date.now() + resp.expires_in * 1000,
-        };
-        resolve(resp.access_token);
-      },
-      error_callback: (err) => reject(new Error(err.type || 'auth error')),
-    });
-    client.requestAccessToken({ prompt: tokenCache ? '' : 'none' });
-  }).catch(() => {
-    // If silent fails, show consent
-    return new Promise((resolve, reject) => {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: getConfig().clientId,
-        scope: 'https://www.googleapis.com/auth/calendar.events',
-        callback: (resp) => {
-          if (resp.error) return reject(new Error(resp.error));
-          tokenCache = {
-            token: resp.access_token,
-            expiry: Date.now() + resp.expires_in * 1000,
-          };
-          resolve(resp.access_token);
-        },
-      });
-      client.requestAccessToken();
-    });
-  });
-}
-
-async function createCalendarEvent(start, end) {
+async function createCalendarEvent(token, start, end) {
   const cfg = getConfig();
-  if (!cfg.clientId) throw new Error('Client IDが未設定です');
-
-  const token = await getAccessToken(cfg.clientId);
-
   const body = {
     summary: '睡眠',
     start: { dateTime: start.toISOString() },
     end:   { dateTime: end.toISOString() },
   };
-
   const res = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cfg.calendarId)}/events`,
     {
@@ -475,7 +481,6 @@ async function createCalendarEvent(start, end) {
       body: JSON.stringify(body),
     }
   );
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.error?.message || `HTTP ${res.status}`);
@@ -483,13 +488,31 @@ async function createCalendarEvent(start, end) {
   return res.json();
 }
 
-// ---- Initial check: show settings if not configured ----
+// ---- On load: handle OAuth redirect or restore state ----
 window.addEventListener('load', () => {
+  // Check if returning from OAuth redirect
+  const tokenObj = parseTokenFromHash();
+  if (tokenObj) {
+    saveToken(tokenObj);
+    // Clean up URL hash
+    history.replaceState(null, '', location.pathname);
+
+    // If there's a pending wake, process it
+    if (STORE.get('pendingWake')) {
+      processPendingWake(tokenObj.token);
+      return;
+    }
+  }
+
   const cfg = getConfig();
   if (!cfg.clientId) {
     loadSettingsUI();
     showScreen('settings');
+    return;
   }
+
+  showScreen('main');
+  updateMainState();
 });
 </script>
 </body>
