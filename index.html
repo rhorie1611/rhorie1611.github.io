@@ -81,16 +81,37 @@
 
     /* ---- Achievement ---- */
     #achievement { width: 100%; max-width: 320px; text-align: center; }
-    .ach-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-    .ach-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+    .ach-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .ach-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
     .ach-list { list-style: none; margin-bottom: 28px; text-align: left; }
     .ach-list li {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px; background: var(--card-bg); border-radius: 12px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 14px; margin-bottom: 10px;
+      transition: transform 0.2s;
     }
-    .ach-icon { font-size: 20px; flex-shrink: 0; }
-    .ach-text .ach-name { font-size: 14px; font-weight: 600; }
-    .ach-text .ach-detail { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .ach-list li.ok  { background: #000; color: #fff; }
+    .ach-list li.ng  { background: var(--card-bg); color: var(--fg); }
+    /* SVG badge */
+    .ach-badge {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .ok  .ach-badge { background: #fff; }
+    .ng  .ach-badge { background: var(--border); }
+    .ach-badge svg { width: 18px; height: 18px; }
+    .ach-text { flex: 1; }
+    .ach-text .ach-name { font-size: 14px; font-weight: 700; }
+    .ach-text .ach-detail { font-size: 12px; margin-top: 2px; opacity: 0.7; }
+    /* pop-in animation */
+    @keyframes achPop {
+      0%   { opacity:0; transform: scale(0.85) translateY(8px); }
+      60%  { transform: scale(1.04) translateY(-2px); }
+      100% { opacity:1; transform: scale(1) translateY(0); }
+    }
+    .ach-list li { opacity: 0; animation: achPop 0.35s ease forwards; }
+    .ach-list li:nth-child(1) { animation-delay: 0.05s; }
+    .ach-list li:nth-child(2) { animation-delay: 0.15s; }
+    .ach-list li:nth-child(3) { animation-delay: 0.25s; }
     .done-msg { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
     .done-msg.success { color: #333; }
     .done-msg.error { color: #c00; }
@@ -107,7 +128,14 @@
     .hist-item:last-child { border-bottom: none; }
     .hist-date { font-size: 13px; color: var(--muted); margin-bottom: 3px; }
     .hist-time { font-size: 15px; font-weight: 500; }
+    .hist-right { display: flex; align-items: center; gap: 12px; }
     .hist-dur { font-size: 20px; font-weight: 300; }
+    .hist-del {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--border); line-height: 1; font-size: 18px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hist-del:active { color: #c00; }
     .hist-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; }
 
     /* ---- Settings ---- */
@@ -386,7 +414,7 @@ function checkAchievements(sleepStart, wakeTime) {
   return results;
 }
 
-// ---- Confetti ----
+// ---- Confetti (bottom-up burst) ----
 function launchConfetti() {
   const canvas = document.getElementById('confetti-canvas');
   canvas.classList.remove('hidden');
@@ -394,36 +422,49 @@ function launchConfetti() {
   canvas.height = window.innerHeight;
   const ctx = canvas.getContext('2d');
 
-  const colors = ['#000','#555','#999','#ccc','#333','#777'];
-  const pieces = Array.from({ length: 120 }, () => ({
-    x: Math.random() * canvas.width,
-    y: -20 - Math.random() * 100,
-    w: 6 + Math.random() * 8,
-    h: 10 + Math.random() * 6,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    rot: Math.random() * Math.PI * 2,
-    vx: (Math.random() - 0.5) * 3,
-    vy: 2 + Math.random() * 3,
-    vr: (Math.random() - 0.5) * 0.2,
-  }));
+  const colors = ['#000','#333','#555','#777','#999','#bbb'];
+  // Two bursts: left and right of center bottom
+  const cx = canvas.width / 2;
+  const cy = canvas.height;
+  const pieces = Array.from({ length: 160 }, (_, i) => {
+    const side = i % 2 === 0 ? -1 : 1;
+    const angle = (Math.PI * (0.55 + Math.random() * 0.4)) * side; // upward spread
+    const speed = 8 + Math.random() * 14;
+    return {
+      x: cx + side * (20 + Math.random() * 30),
+      y: cy,
+      w: 5 + Math.random() * 8,
+      h: 8 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed, // negative = up
+      vr: (Math.random() - 0.5) * 0.25,
+      alpha: 1,
+    };
+  });
 
-  let frame;
   let elapsed = 0;
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     elapsed++;
     pieces.forEach(p => {
-      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
-      p.vy += 0.05;
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.45; // gravity
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      if (elapsed > 80) p.alpha = Math.max(0, p.alpha - 0.018);
       ctx.save();
+      ctx.globalAlpha = p.alpha;
       ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
       ctx.rotate(p.rot);
       ctx.fillStyle = p.color;
       ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
       ctx.restore();
     });
-    if (elapsed < 180) {
-      frame = requestAnimationFrame(draw);
+    if (elapsed < 140) {
+      requestAnimationFrame(draw);
     } else {
       canvas.classList.add('hidden');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -499,27 +540,37 @@ function showScreen(id) {
   document.getElementById('gearBtn').classList.toggle('hidden', id === 'settings');
 }
 
-// ---- Summary strip ----
+// ---- Summary strip (直近7日平均) ----
 function updateSummary() {
   const hist = loadHistory().filter(e => e.type === 'sleep');
   const strip = document.getElementById('summaryStrip');
   if (hist.length === 0) { strip.classList.add('hidden'); return; }
 
-  const last = hist[hist.length - 1];
-  const dur = new Date(last.end) - new Date(last.start);
-  document.getElementById('summaryDur').textContent = fmtDuration(dur);
+  // 直近7日分
+  const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+  const recent = hist.filter(e => new Date(e.start).getTime() >= cutoff);
+  const target = recent.length > 0 ? recent : hist.slice(-7);
+
+  const avgMs = target.reduce((sum, e) => sum + (new Date(e.end) - new Date(e.start)), 0) / target.length;
+  const label = target === recent
+    ? `直近${target.length}日の平均`
+    : `直近${target.length}件の平均`;
+
+  document.querySelector('#summaryStrip .s-label').textContent = label;
+  document.getElementById('summaryDur').textContent = fmtDuration(avgMs);
 
   const badges = document.getElementById('summaryBadges');
   badges.innerHTML = '';
   const cfg = getConfig();
 
-  if (cfg.goalBed || cfg.goalWake) {
+  if ((cfg.goalBed || cfg.goalWake) && target.length > 0) {
+    const last = target[target.length - 1];
     const achs = checkAchievements(new Date(last.start), new Date(last.end));
     const allOk = achs.length > 0 && achs.every(a => a.ok);
     const anyOk = achs.some(a => a.ok);
     const b = document.createElement('span');
     b.className = 'badge ' + (allOk ? 'badge-ok' : anyOk ? 'badge-ok' : 'badge-ng');
-    b.textContent = allOk ? '全達成' : anyOk ? '一部達成' : '未達成';
+    b.textContent = allOk ? '昨日全達成' : anyOk ? '一部達成' : '未達成';
     badges.appendChild(b);
   }
 
@@ -535,13 +586,14 @@ strip_click: {
 
 // ---- History screen ----
 function renderHistory() {
-  const hist = loadHistory().filter(e => e.type === 'sleep').reverse();
+  const allHist = loadHistory();
+  const hist = allHist.filter(e => e.type === 'sleep').reverse();
   const el = document.getElementById('histList');
   if (hist.length === 0) {
     el.innerHTML = '<p class="hist-empty">まだ記録がありません</p>';
     return;
   }
-  el.innerHTML = hist.map(e => {
+  el.innerHTML = hist.map((e, i) => {
     const s = new Date(e.start), w = new Date(e.end);
     const dur = w - s;
     const dateStr = s.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
@@ -551,9 +603,23 @@ function renderHistory() {
           <div class="hist-date">${dateStr}</div>
           <div class="hist-time">${fmtTime(s)} → ${fmtTime(w)}</div>
         </div>
-        <div class="hist-dur">${fmtDuration(dur)}</div>
+        <div class="hist-right">
+          <div class="hist-dur">${fmtDuration(dur)}</div>
+          <button class="hist-del" data-start="${e.start}" title="削除">✕</button>
+        </div>
       </div>`;
   }).join('');
+
+  el.querySelectorAll('.hist-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const startKey = btn.dataset.start;
+      if (!confirm('この記録を削除しますか？')) return;
+      const updated = loadHistory().filter(e => e.start !== startKey);
+      saveHistory(updated);
+      renderHistory();
+      updateSummary();
+    });
+  });
 }
 document.getElementById('btnHistBack').addEventListener('click', () => {
   showScreen('main');
@@ -609,15 +675,20 @@ async function processSleepDone(token) {
 
   const list = document.getElementById('achList');
   list.innerHTML = '';
+
+  const svgCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const svgX     = `<svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
   if (achs.length === 0) {
-    // No goals set — simple row
     const li = document.createElement('li');
-    li.innerHTML = `<span class="ach-icon">🌙</span><div class="ach-text"><div class="ach-name">${fmtDuration(end - start)} 睡眠</div><div class="ach-detail">${fmtTime(start)} → ${fmtTime(end)}</div></div>`;
+    li.className = 'ok';
+    li.innerHTML = `<div class="ach-badge">${svgCheck}</div><div class="ach-text"><div class="ach-name">${fmtDuration(end - start)} 睡眠</div><div class="ach-detail">${fmtTime(start)} → ${fmtTime(end)}</div></div>`;
     list.appendChild(li);
   } else {
     achs.forEach(a => {
       const li = document.createElement('li');
-      li.innerHTML = `<span class="ach-icon">${a.ok ? '✅' : '❌'}</span><div class="ach-text"><div class="ach-name">${a.name}</div><div class="ach-detail">${a.detail}</div></div>`;
+      li.className = a.ok ? 'ok' : 'ng';
+      li.innerHTML = `<div class="ach-badge">${a.ok ? svgCheck : svgX}</div><div class="ach-text"><div class="ach-name">${a.name}</div><div class="ach-detail">${a.detail}</div></div>`;
       list.appendChild(li);
     });
   }
