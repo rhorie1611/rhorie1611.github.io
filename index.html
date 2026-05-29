@@ -418,8 +418,8 @@ function checkAchievements(sleepStart, wakeTime) {
 function launchConfetti() {
   const canvas = document.getElementById('confetti-canvas');
   canvas.classList.remove('hidden');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width  = document.documentElement.clientWidth;
+  canvas.height = document.documentElement.clientHeight;
   const ctx = canvas.getContext('2d');
 
   const colors = ['#000','#333','#555','#777','#999','#bbb'];
