@@ -10,211 +10,172 @@
   <title>睡眠記録</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #fff;
-      --fg: #000;
-      --muted: #888;
-      --border: #ddd;
-      --btn-bg: #000;
-      --btn-fg: #fff;
-      --btn-outline-bg: #fff;
-      --btn-outline-fg: #000;
-      --card-bg: #f8f8f8;
+      --bg: #fff; --fg: #000; --muted: #888; --border: #e0e0e0;
+      --card-bg: #f5f5f5;
     }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      background: var(--bg);
-      color: var(--fg);
+      background: var(--bg); color: var(--fg);
       min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 24px 20px;
       -webkit-tap-highlight-color: transparent;
     }
 
-    h1 {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      margin-bottom: 40px;
-      color: var(--muted);
-    }
-
-    #main, #prep, #done, #settings { width: 100%; max-width: 320px; text-align: center; }
-
-    .time-display {
-      font-size: 56px;
-      font-weight: 200;
-      letter-spacing: -2px;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-    .date-display {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 48px;
-    }
-
+    /* ---- Buttons ---- */
     .btn {
-      display: block;
-      width: 100%;
-      padding: 18px;
-      border-radius: 14px;
-      font-size: 17px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      -webkit-appearance: none;
+      display: block; width: 100%; padding: 18px;
+      border-radius: 14px; font-size: 17px; font-weight: 600;
+      border: none; cursor: pointer; transition: opacity 0.15s; -webkit-appearance: none;
     }
     .btn:active { opacity: 0.6; }
-    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
-    .btn-outline {
-      background: var(--btn-outline-bg);
-      color: var(--btn-outline-fg);
-      border: 2px solid var(--fg);
-      margin-top: 14px;
-    }
-    .btn-small {
-      font-size: 14px;
-      padding: 12px;
-      margin-top: 10px;
-    }
+    .btn-primary { background: #000; color: #fff; }
+    .btn-outline { background: #fff; color: #000; border: 2px solid #000; margin-top: 14px; }
+    .btn-small { font-size: 14px; padding: 12px; margin-top: 10px; }
     .btn-ghost {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 14px;
-      padding: 12px;
-      margin-top: 8px;
-      cursor: pointer;
-      width: 100%;
-      -webkit-appearance: none;
+      background: none; border: none; color: var(--muted);
+      font-size: 14px; padding: 12px; margin-top: 8px;
+      cursor: pointer; width: 100%; -webkit-appearance: none;
     }
     .btn-ghost:active { opacity: 0.5; }
 
-    .info-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 24px;
-      text-align: left;
-    }
-    .info-card .label {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
-    }
-    .info-card .value {
-      font-size: 28px;
-      font-weight: 300;
-    }
+    /* ---- Typography ---- */
+    h1 { font-size: 18px; font-weight: 600; letter-spacing: .05em; margin-bottom: 32px; color: var(--muted); }
+    .time-display { font-size: 56px; font-weight: 200; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
+    .date-display { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
 
-    .result-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 24px 20px;
-      margin-bottom: 28px;
-      text-align: left;
+    /* ---- Cards ---- */
+    .card {
+      background: var(--card-bg); border-radius: 14px;
+      padding: 20px; margin-bottom: 20px; text-align: left;
     }
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+    .card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .card .value { font-size: 26px; font-weight: 300; }
+
+    /* ---- Summary strip on main ---- */
+    .summary-strip {
+      background: var(--card-bg); border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
     }
+    .summary-strip:active { opacity: .7; }
+    .summary-left .s-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+    .summary-left .s-val { font-size: 20px; font-weight: 300; }
+    .summary-badges { display: flex; gap: 6px; }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .badge-ok { background: #000; color: #fff; }
+    .badge-ng { background: var(--border); color: var(--muted); }
+    .badge-none { background: var(--border); color: var(--muted); }
+
+    /* ---- Result rows ---- */
+    .result-card { background: var(--card-bg); border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .result-row:last-child { border-bottom: none; }
     .result-row .key { font-size: 13px; color: var(--muted); }
     .result-row .val { font-size: 15px; font-weight: 500; }
 
-    .done-msg {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 20px;
+    /* ---- Achievement ---- */
+    #achievement { width: 100%; max-width: 320px; text-align: center; }
+    .ach-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .ach-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+    .ach-list { list-style: none; margin-bottom: 28px; text-align: left; }
+    .ach-list li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: var(--card-bg); border-radius: 12px; margin-bottom: 10px;
     }
+    .ach-icon { font-size: 20px; flex-shrink: 0; }
+    .ach-text .ach-name { font-size: 14px; font-weight: 600; }
+    .ach-text .ach-detail { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .done-msg { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
     .done-msg.success { color: #333; }
     .done-msg.error { color: #c00; }
 
-    #settings { text-align: left; }
-    .settings-title {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 28px;
+    /* ---- History screen ---- */
+    #history { width: 100%; max-width: 320px; }
+    .hist-header { display: flex; align-items: center; margin-bottom: 24px; }
+    .hist-header h2 { font-size: 20px; font-weight: 600; flex: 1; }
+    .hist-back { background: none; border: none; font-size: 14px; color: var(--muted); cursor: pointer; padding: 4px; }
+    .hist-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
     }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-date { font-size: 13px; color: var(--muted); margin-bottom: 3px; }
+    .hist-time { font-size: 15px; font-weight: 500; }
+    .hist-dur { font-size: 20px; font-weight: 300; }
+    .hist-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; }
+
+    /* ---- Settings ---- */
+    #settings { width: 100%; max-width: 320px; }
+    .settings-title { font-size: 20px; font-weight: 600; margin-bottom: 28px; }
     .field { margin-bottom: 20px; }
-    .field label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
-    }
+    .field label { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
     .field input {
-      width: 100%;
-      padding: 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 15px;
-      background: var(--bg);
-      color: var(--fg);
-      -webkit-appearance: none;
-      outline: none;
+      width: 100%; padding: 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--fg);
+      -webkit-appearance: none; outline: none;
     }
     .field input:focus { border-color: var(--fg); }
-    .field .hint {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 5px;
-      line-height: 1.4;
-    }
+    .field .hint { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+    .settings-section { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 24px 0 16px; }
 
+    /* ---- Prep screen ---- */
+    #prep { width: 100%; max-width: 320px; text-align: center; }
+
+    /* ---- Nav ---- */
     .nav-gear {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 8px;
+      position: fixed; top: 20px; right: 20px;
+      background: none; border: none; cursor: pointer; padding: 8px;
       -webkit-tap-highlight-color: transparent;
     }
     .nav-gear svg { display: block; }
+
+    /* ---- Confetti canvas ---- */
+    #confetti-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 999;
+    }
 
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<button class="nav-gear" id="gearBtn" title="設定">
+<canvas id="confetti-canvas" class="hidden"></canvas>
+
+<button class="nav-gear" id="gearBtn">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="3"/>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 </button>
 
 <!-- 睡眠メイン画面 -->
-<div id="main">
+<div id="main" style="width:100%;max-width:320px;text-align:center;">
   <h1>睡眠記録</h1>
   <div class="time-display" id="clock">--:--</div>
   <div class="date-display" id="dateLabel"></div>
 
-  <!-- 待機中 -->
+  <!-- サマリストリップ -->
+  <div class="summary-strip hidden" id="summaryStrip">
+    <div class="summary-left">
+      <div class="s-label">昨日の睡眠</div>
+      <div class="s-val" id="summaryDur">--</div>
+    </div>
+    <div class="summary-badges" id="summaryBadges"></div>
+  </div>
+
   <div id="stateIdle">
     <button class="btn btn-primary" id="btnSleep">今から寝る</button>
     <button class="btn btn-ghost" id="btnSkipToPrep">準備を始める →</button>
   </div>
-
-  <!-- 就寝中 -->
   <div id="stateSleeping" class="hidden">
-    <div class="info-card">
+    <div class="card">
       <div class="label">就寝</div>
       <div class="value" id="sleepStartLabel">--:--</div>
     </div>
@@ -224,20 +185,16 @@
 </div>
 
 <!-- 準備画面 -->
-<div id="prep" class="hidden">
+<div id="prep">
   <h1>準備</h1>
   <div class="time-display" id="clockPrep">--:--</div>
   <div class="date-display" id="dateLabelPrep"></div>
-
-  <!-- 待機中 -->
   <div id="prepStateIdle">
     <button class="btn btn-primary" id="btnPrepStart">準備を始める</button>
     <button class="btn btn-ghost" id="btnPrepBackToSleep">← 睡眠画面に戻る</button>
   </div>
-
-  <!-- 準備中 -->
   <div id="prepStateRunning" class="hidden">
-    <div class="info-card">
+    <div class="card">
       <div class="label">開始</div>
       <div class="value" id="prepStartLabel">--:--</div>
     </div>
@@ -246,42 +203,63 @@
   </div>
 </div>
 
-<!-- 完了画面 -->
-<div id="done" class="hidden">
-  <h1 id="doneTitle">記録完了</h1>
+<!-- 達成画面（睡眠後） -->
+<div id="achievement">
+  <h1 id="achMainTitle">睡眠記録</h1>
+  <div class="ach-title" id="achTitle"></div>
+  <div class="ach-subtitle" id="achSubtitle"></div>
+  <ul class="ach-list" id="achList"></ul>
+  <p class="done-msg" id="achMsg">Googleカレンダーに登録中...</p>
+  <button class="btn btn-primary hidden" id="btnAchNext">次へ：準備を始める</button>
+  <button class="btn btn-outline" id="btnAchBack">戻る</button>
+</div>
+
+<!-- 準備完了画面 -->
+<div id="donePrepScreen">
+  <h1>準備完了</h1>
   <div class="result-card">
-    <div class="result-row">
-      <span class="key" id="doneKeyStart">開始</span>
-      <span class="val" id="doneStart">--:--</span>
-    </div>
-    <div class="result-row">
-      <span class="key" id="doneKeyEnd">終了</span>
-      <span class="val" id="doneEnd">--:--</span>
-    </div>
-    <div class="result-row">
-      <span class="key" id="doneKeyDur">時間</span>
-      <span class="val" id="doneDuration">--</span>
-    </div>
+    <div class="result-row"><span class="key">開始</span><span class="val" id="prepDoneStart">--:--</span></div>
+    <div class="result-row"><span class="key">終了</span><span class="val" id="prepDoneEnd">--:--</span></div>
+    <div class="result-row"><span class="key">所要時間</span><span class="val" id="prepDoneDur">--</span></div>
   </div>
-  <p class="done-msg" id="doneMsg">Googleカレンダーに登録中...</p>
-  <button class="btn btn-primary" id="btnDoneNext" class="hidden">次へ：準備を始める</button>
-  <button class="btn btn-outline" id="btnDoneBack">戻る</button>
+  <p class="done-msg" id="prepDoneMsg">Googleカレンダーに登録中...</p>
+  <button class="btn btn-outline" id="btnPrepDoneBack">戻る</button>
+</div>
+
+<!-- 履歴画面 -->
+<div id="history">
+  <div class="hist-header">
+    <h2>睡眠履歴</h2>
+    <button class="hist-back" id="btnHistBack">閉じる</button>
+  </div>
+  <div id="histList"></div>
 </div>
 
 <!-- 設定画面 -->
-<div id="settings" class="hidden">
+<div id="settings">
   <div class="settings-title">設定</div>
 
+  <div class="settings-section">Google カレンダー</div>
   <div class="field">
-    <label>Google Client ID</label>
+    <label>Client ID</label>
     <input type="text" id="inputClientId" placeholder="xxx.apps.googleusercontent.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <p class="hint">Google Cloud Console › OAuth 2.0 クライアント ID</p>
   </div>
-
   <div class="field">
     <label>カレンダー ID</label>
     <input type="text" id="inputCalendarId" placeholder="primary または xxx@group.calendar.google.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <p class="hint">Googleカレンダー設定 › カレンダーの統合 より確認</p>
+  </div>
+
+  <div class="settings-section">目標</div>
+  <div class="field">
+    <label>目標就寝時刻</label>
+    <input type="time" id="inputGoalBed">
+    <p class="hint">これより早く寝ればOK</p>
+  </div>
+  <div class="field">
+    <label>目標起床時刻</label>
+    <input type="time" id="inputGoalWake">
+    <p class="hint">これより早く起きればOK</p>
   </div>
 
   <button class="btn btn-primary" id="btnSaveSettings">保存</button>
@@ -289,19 +267,20 @@
 </div>
 
 <script>
+// ---- Storage ----
 const STORE = {
   get: k => localStorage.getItem(k),
   set: (k, v) => localStorage.setItem(k, v),
   del: k => localStorage.removeItem(k),
 };
 
+// ---- Helpers ----
 function roundTo15(date) {
   const d = new Date(date);
   const mins = d.getMinutes() + d.getSeconds() / 60;
   d.setMinutes(Math.round(mins / 15) * 15, 0, 0);
   return d;
 }
-
 function fmtTime(date) {
   return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
@@ -310,16 +289,147 @@ function fmtDate(date) {
 }
 function fmtDuration(ms) {
   const totalMin = Math.round(ms / 60000);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
   return m === 0 ? `${h}時間` : `${h}時間${m}分`;
 }
 
+// ---- Config ----
 function getConfig() {
   return {
     clientId:   STORE.get('clientId')   || '',
     calendarId: STORE.get('calendarId') || 'primary',
+    goalBed:    STORE.get('goalBedtime')  || '',
+    goalWake:   STORE.get('goalWakeTime') || '',
   };
+}
+
+// ---- History ----
+function loadHistory() {
+  try { return JSON.parse(STORE.get('sleepHistory') || '[]'); } catch { return []; }
+}
+function saveHistory(arr) {
+  STORE.set('sleepHistory', JSON.stringify(arr.slice(-60)));
+}
+function addHistoryEntry(entry) {
+  const h = loadHistory();
+  h.push(entry);
+  saveHistory(h);
+}
+
+// ---- Achievement logic ----
+// Normalize bedtime to "night scale": 18:00=1080, 23:00=1380, 00:00=1440, 06:00=1800
+function toNightMin(h, m) {
+  return h < 18 ? (h + 24) * 60 + m : h * 60 + m;
+}
+function parseHHMM(str) {
+  if (!str) return null;
+  const [h, m] = str.split(':').map(Number);
+  return { h, m };
+}
+function checkAchievements(sleepStart, wakeTime) {
+  const cfg = getConfig();
+  const results = [];
+  const actualDur = wakeTime - sleepStart;
+
+  // 就寝時刻
+  if (cfg.goalBed) {
+    const goal = parseHHMM(cfg.goalBed);
+    const goalMin = toNightMin(goal.h, goal.m);
+    const actMin  = toNightMin(sleepStart.getHours(), sleepStart.getMinutes());
+    const ok = actMin <= goalMin;
+    results.push({
+      key: 'bed',
+      name: '就寝時刻',
+      ok,
+      detail: ok
+        ? `${fmtTime(sleepStart)} に就寝（目標 ${cfg.goalBed}）`
+        : `${fmtTime(sleepStart)} に就寝（目標 ${cfg.goalBed} を超過）`,
+    });
+  }
+
+  // 起床時刻
+  if (cfg.goalWake) {
+    const goal = parseHHMM(cfg.goalWake);
+    const goalMin = goal.h * 60 + goal.m;
+    const actMin  = wakeTime.getHours() * 60 + wakeTime.getMinutes();
+    const ok = actMin <= goalMin;
+    results.push({
+      key: 'wake',
+      name: '起床時刻',
+      ok,
+      detail: ok
+        ? `${fmtTime(wakeTime)} に起床（目標 ${cfg.goalWake}）`
+        : `${fmtTime(wakeTime)} に起床（目標 ${cfg.goalWake} を超過）`,
+    });
+  }
+
+  // 睡眠時間（目標就寝・起床の両方が設定されている場合）
+  if (cfg.goalBed && cfg.goalWake) {
+    const bed  = parseHHMM(cfg.goalBed);
+    const wake = parseHHMM(cfg.goalWake);
+    const bedMin  = toNightMin(bed.h, bed.m);
+    const wakeMin = wake.h * 60 + wake.m + (wake.h < 18 ? 24 * 60 : 0);
+    // Normalize wakeMin to be after bedMin
+    let goalDurMs = (wakeMin - bedMin) * 60000;
+    if (goalDurMs < 0) goalDurMs += 24 * 3600000;
+    const ok = actualDur >= goalDurMs;
+    results.push({
+      key: 'dur',
+      name: '睡眠時間',
+      ok,
+      detail: ok
+        ? `${fmtDuration(actualDur)} 眠れた（目標 ${fmtDuration(goalDurMs)}）`
+        : `${fmtDuration(actualDur)} 睡眠（目標 ${fmtDuration(goalDurMs)} に届かず）`,
+    });
+  }
+
+  return results;
+}
+
+// ---- Confetti ----
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.classList.remove('hidden');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+
+  const colors = ['#000','#555','#999','#ccc','#333','#777'];
+  const pieces = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * 100,
+    w: 6 + Math.random() * 8,
+    h: 10 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    rot: Math.random() * Math.PI * 2,
+    vx: (Math.random() - 0.5) * 3,
+    vy: 2 + Math.random() * 3,
+    vr: (Math.random() - 0.5) * 0.2,
+  }));
+
+  let frame;
+  let elapsed = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    elapsed++;
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      p.vy += 0.05;
+      ctx.save();
+      ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (elapsed < 180) {
+      frame = requestAnimationFrame(draw);
+    } else {
+      canvas.classList.add('hidden');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  draw();
 }
 
 // ---- OAuth ----
@@ -328,41 +438,51 @@ function redirectToAuth(pendingAction) {
   const cfg = getConfig();
   const redirectUri = location.origin + location.pathname;
   const params = new URLSearchParams({
-    client_id:     cfg.clientId,
-    redirect_uri:  redirectUri,
-    response_type: 'token',
-    scope:         'https://www.googleapis.com/auth/calendar.events',
+    client_id: cfg.clientId, redirect_uri: redirectUri,
+    response_type: 'token', scope: 'https://www.googleapis.com/auth/calendar.events',
   });
   location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
 }
-
 function parseTokenFromHash() {
   const hash = location.hash.substring(1);
   if (!hash) return null;
   const p = new URLSearchParams(hash);
-  const token = p.get('access_token');
-  const expiresIn = p.get('expires_in');
+  const token = p.get('access_token'), expiresIn = p.get('expires_in');
   if (!token) return null;
   return { token, expiry: Date.now() + expiresIn * 1000 };
 }
-
 function getCachedToken() {
-  const t = STORE.get('oauthToken');
-  const e = STORE.get('oauthExpiry');
+  const t = STORE.get('oauthToken'), e = STORE.get('oauthExpiry');
   if (t && e && +e > Date.now() + 60000) return t;
   return null;
 }
-
 function saveToken(obj) {
   STORE.set('oauthToken', obj.token);
   STORE.set('oauthExpiry', obj.expiry);
 }
 
+// ---- Calendar API ----
+async function createEvent(token, summary, start, end) {
+  const cfg = getConfig();
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cfg.calendarId)}/events`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ summary, start: { dateTime: start.toISOString() }, end: { dateTime: end.toISOString() } }),
+    }
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 // ---- Clock ----
 function updateClock() {
   const now = new Date();
-  const t = fmtTime(now);
-  const d = fmtDate(now);
+  const t = fmtTime(now), d = fmtDate(now);
   document.getElementById('clock').textContent = t;
   document.getElementById('dateLabel').textContent = d;
   document.getElementById('clockPrep').textContent = t;
@@ -371,15 +491,76 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ---- Screen management ----
-const screens = ['main', 'prep', 'done', 'settings'];
+// ---- Screens ----
+const SCREENS = ['main', 'prep', 'achievement', 'donePrepScreen', 'history', 'settings'];
 function showScreen(id) {
-  screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+  SCREENS.forEach(s => document.getElementById(s).classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
   document.getElementById('gearBtn').classList.toggle('hidden', id === 'settings');
 }
 
-// ---- 睡眠 ----
+// ---- Summary strip ----
+function updateSummary() {
+  const hist = loadHistory().filter(e => e.type === 'sleep');
+  const strip = document.getElementById('summaryStrip');
+  if (hist.length === 0) { strip.classList.add('hidden'); return; }
+
+  const last = hist[hist.length - 1];
+  const dur = new Date(last.end) - new Date(last.start);
+  document.getElementById('summaryDur').textContent = fmtDuration(dur);
+
+  const badges = document.getElementById('summaryBadges');
+  badges.innerHTML = '';
+  const cfg = getConfig();
+
+  if (cfg.goalBed || cfg.goalWake) {
+    const achs = checkAchievements(new Date(last.start), new Date(last.end));
+    const allOk = achs.length > 0 && achs.every(a => a.ok);
+    const anyOk = achs.some(a => a.ok);
+    const b = document.createElement('span');
+    b.className = 'badge ' + (allOk ? 'badge-ok' : anyOk ? 'badge-ok' : 'badge-ng');
+    b.textContent = allOk ? '全達成' : anyOk ? '一部達成' : '未達成';
+    badges.appendChild(b);
+  }
+
+  strip.classList.remove('hidden');
+}
+
+strip_click: {
+  document.getElementById('summaryStrip').addEventListener('click', () => {
+    renderHistory();
+    showScreen('history');
+  });
+}
+
+// ---- History screen ----
+function renderHistory() {
+  const hist = loadHistory().filter(e => e.type === 'sleep').reverse();
+  const el = document.getElementById('histList');
+  if (hist.length === 0) {
+    el.innerHTML = '<p class="hist-empty">まだ記録がありません</p>';
+    return;
+  }
+  el.innerHTML = hist.map(e => {
+    const s = new Date(e.start), w = new Date(e.end);
+    const dur = w - s;
+    const dateStr = s.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
+    return `
+      <div class="hist-item">
+        <div>
+          <div class="hist-date">${dateStr}</div>
+          <div class="hist-time">${fmtTime(s)} → ${fmtTime(w)}</div>
+        </div>
+        <div class="hist-dur">${fmtDuration(dur)}</div>
+      </div>`;
+  }).join('');
+}
+document.getElementById('btnHistBack').addEventListener('click', () => {
+  showScreen('main');
+  updateSleepState();
+});
+
+// ---- Sleep ----
 function updateSleepState() {
   const sleeping = STORE.get('sleepStart');
   document.getElementById('stateIdle').classList.toggle('hidden', !!sleeping);
@@ -387,6 +568,7 @@ function updateSleepState() {
   if (sleeping) {
     document.getElementById('sleepStartLabel').textContent = fmtTime(roundTo15(new Date(+sleeping)));
   }
+  updateSummary();
 }
 
 document.getElementById('btnSleep').addEventListener('click', () => {
@@ -404,8 +586,7 @@ document.getElementById('btnWake').addEventListener('click', () => {
 });
 
 async function processSleepDone(token) {
-  const sleepRaw = STORE.get('sleepStart');
-  const wakeRaw  = STORE.get('pendingWake');
+  const sleepRaw = STORE.get('sleepStart'), wakeRaw = STORE.get('pendingWake');
   if (!sleepRaw || !wakeRaw) return;
 
   const start = roundTo15(new Date(+sleepRaw));
@@ -413,31 +594,66 @@ async function processSleepDone(token) {
   STORE.del('sleepStart');
   STORE.del('pendingWake');
 
-  showDone('睡眠完了', '就寝', '起床', '睡眠時間', start, end);
+  addHistoryEntry({ type: 'sleep', start: start.toISOString(), end: end.toISOString() });
+
+  const achs = checkAchievements(start, end);
+  const allOk = achs.length > 0 && achs.every(a => a.ok);
+  const anyOk = achs.some(a => a.ok);
+
+  // Build achievement screen
+  document.getElementById('achMainTitle').textContent = '睡眠記録';
+  document.getElementById('achTitle').textContent =
+    allOk ? '完全達成！🎉' : anyOk ? 'もう少し！' : achs.length === 0 ? '記録完了' : '次回がんばろう';
+  document.getElementById('achSubtitle').textContent =
+    `${fmtTime(start)} → ${fmtTime(end)}　${fmtDuration(end - start)}`;
+
+  const list = document.getElementById('achList');
+  list.innerHTML = '';
+  if (achs.length === 0) {
+    // No goals set — simple row
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="ach-icon">🌙</span><div class="ach-text"><div class="ach-name">${fmtDuration(end - start)} 睡眠</div><div class="ach-detail">${fmtTime(start)} → ${fmtTime(end)}</div></div>`;
+    list.appendChild(li);
+  } else {
+    achs.forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="ach-icon">${a.ok ? '✅' : '❌'}</span><div class="ach-text"><div class="ach-name">${a.name}</div><div class="ach-detail">${a.detail}</div></div>`;
+      list.appendChild(li);
+    });
+  }
+
+  document.getElementById('achMsg').textContent = 'Googleカレンダーに登録中...';
+  document.getElementById('achMsg').className = 'done-msg';
+  document.getElementById('btnAchNext').classList.add('hidden');
+  showScreen('achievement');
+
+  if (allOk) setTimeout(launchConfetti, 300);
 
   try {
     await createEvent(token, '睡眠', start, end);
-    document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
-    document.getElementById('doneMsg').className = 'done-msg success';
-    // 睡眠完了後は「準備を始める」ボタンを表示
-    const nextBtn = document.getElementById('btnDoneNext');
-    nextBtn.textContent = '次へ：準備を始める';
-    nextBtn.classList.remove('hidden');
+    document.getElementById('achMsg').textContent = 'カレンダーに登録しました ✓';
+    document.getElementById('achMsg').className = 'done-msg success';
+    document.getElementById('btnAchNext').classList.remove('hidden');
   } catch (e) {
-    document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
-    document.getElementById('doneMsg').className = 'done-msg error';
+    document.getElementById('achMsg').textContent = '登録に失敗しました: ' + (e.message || e);
+    document.getElementById('achMsg').className = 'done-msg error';
+    document.getElementById('btnAchNext').classList.remove('hidden');
   }
 }
 
 document.getElementById('btnCancelSleep').addEventListener('click', () => {
   if (confirm('就寝記録をキャンセルしますか？')) {
-    STORE.del('sleepStart');
-    STORE.del('pendingWake');
-    updateSleepState();
+    STORE.del('sleepStart'); STORE.del('pendingWake'); updateSleepState();
   }
 });
+document.getElementById('btnAchNext').addEventListener('click', () => {
+  showScreen('prep'); updatePrepState();
+});
+document.getElementById('btnAchBack').addEventListener('click', () => {
+  showScreen('main'); updateSleepState();
+});
 
-// ---- 準備 ----
+// ---- Prep ----
 function updatePrepState() {
   const running = STORE.get('prepStart');
   document.getElementById('prepStateIdle').classList.toggle('hidden', !!running);
@@ -447,15 +663,8 @@ function updatePrepState() {
   }
 }
 
-document.getElementById('btnSkipToPrep').addEventListener('click', () => {
-  showScreen('prep');
-  updatePrepState();
-});
-
-document.getElementById('btnPrepBackToSleep').addEventListener('click', () => {
-  showScreen('main');
-  updateSleepState();
-});
+document.getElementById('btnSkipToPrep').addEventListener('click', () => { showScreen('prep'); updatePrepState(); });
+document.getElementById('btnPrepBackToSleep').addEventListener('click', () => { showScreen('main'); updateSleepState(); });
 
 document.getElementById('btnPrepStart').addEventListener('click', () => {
   const cfg = getConfig();
@@ -472,140 +681,76 @@ document.getElementById('btnPrepDone').addEventListener('click', () => {
 });
 
 async function processPrepDone(token) {
-  const startRaw = STORE.get('prepStart');
-  const endRaw   = STORE.get('pendingPrepEnd');
+  const startRaw = STORE.get('prepStart'), endRaw = STORE.get('pendingPrepEnd');
   if (!startRaw || !endRaw) return;
 
   const start = roundTo15(new Date(+startRaw));
   const end   = roundTo15(new Date(+endRaw));
-  STORE.del('prepStart');
-  STORE.del('pendingPrepEnd');
+  STORE.del('prepStart'); STORE.del('pendingPrepEnd');
 
-  showDone('準備完了', '開始', '終了', '所要時間', start, end);
+  document.getElementById('prepDoneStart').textContent = fmtTime(start);
+  document.getElementById('prepDoneEnd').textContent   = fmtTime(end);
+  document.getElementById('prepDoneDur').textContent   = fmtDuration(end - start);
+  document.getElementById('prepDoneMsg').textContent = 'Googleカレンダーに登録中...';
+  document.getElementById('prepDoneMsg').className = 'done-msg';
+  showScreen('donePrepScreen');
 
   try {
     await createEvent(token, '準備', start, end);
-    document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
-    document.getElementById('doneMsg').className = 'done-msg success';
-    document.getElementById('btnDoneNext').classList.add('hidden');
+    document.getElementById('prepDoneMsg').textContent = 'カレンダーに登録しました ✓';
+    document.getElementById('prepDoneMsg').className = 'done-msg success';
   } catch (e) {
-    document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
-    document.getElementById('doneMsg').className = 'done-msg error';
+    document.getElementById('prepDoneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
+    document.getElementById('prepDoneMsg').className = 'done-msg error';
   }
 }
 
 document.getElementById('btnCancelPrep').addEventListener('click', () => {
   if (confirm('準備記録をキャンセルしますか？')) {
-    STORE.del('prepStart');
-    STORE.del('pendingPrepEnd');
-    updatePrepState();
+    STORE.del('prepStart'); STORE.del('pendingPrepEnd'); updatePrepState();
   }
 });
+document.getElementById('btnPrepDoneBack').addEventListener('click', () => { showScreen('main'); updateSleepState(); });
 
-// ---- 完了画面 ----
-function showDone(title, keyStart, keyEnd, keyDur, start, end) {
-  document.getElementById('doneTitle').textContent = title;
-  document.getElementById('doneKeyStart').textContent = keyStart;
-  document.getElementById('doneKeyEnd').textContent = keyEnd;
-  document.getElementById('doneKeyDur').textContent = keyDur;
-  document.getElementById('doneStart').textContent = fmtTime(start);
-  document.getElementById('doneEnd').textContent   = fmtTime(end);
-  const dur = end - start;
-  document.getElementById('doneDuration').textContent = dur > 0 ? fmtDuration(dur) : '--';
-  document.getElementById('doneMsg').textContent = 'Googleカレンダーに登録中...';
-  document.getElementById('doneMsg').className = 'done-msg';
-  document.getElementById('btnDoneNext').classList.add('hidden');
-  showScreen('done');
-}
-
-document.getElementById('btnDoneNext').addEventListener('click', () => {
-  showScreen('prep');
-  updatePrepState();
-});
-
-document.getElementById('btnDoneBack').addEventListener('click', () => {
-  showScreen('main');
-  updateSleepState();
-});
-
-// ---- 設定 ----
+// ---- Settings ----
 function loadSettingsUI() {
   const cfg = getConfig();
   document.getElementById('inputClientId').value   = cfg.clientId;
   document.getElementById('inputCalendarId').value = cfg.calendarId;
+  document.getElementById('inputGoalBed').value    = cfg.goalBed;
+  document.getElementById('inputGoalWake').value   = cfg.goalWake;
 }
-
-document.getElementById('gearBtn').addEventListener('click', () => {
-  loadSettingsUI();
-  showScreen('settings');
-});
-document.getElementById('btnBackFromSettings').addEventListener('click', () => {
-  showScreen('main');
-  updateSleepState();
-});
+document.getElementById('gearBtn').addEventListener('click', () => { loadSettingsUI(); showScreen('settings'); });
+document.getElementById('btnBackFromSettings').addEventListener('click', () => { showScreen('main'); updateSleepState(); });
 document.getElementById('btnSaveSettings').addEventListener('click', () => {
   const clientId   = document.getElementById('inputClientId').value.trim();
   const calendarId = document.getElementById('inputCalendarId').value.trim();
-  if (!clientId) { alert('Client IDを入力してください'); return; }
+  if (!clientId)   { alert('Client IDを入力してください'); return; }
   if (!calendarId) { alert('カレンダーIDを入力してください'); return; }
-  STORE.set('clientId', clientId);
+  STORE.set('clientId',   clientId);
   STORE.set('calendarId', calendarId);
-  STORE.del('oauthToken');
-  STORE.del('oauthExpiry');
+  STORE.set('goalBedtime',  document.getElementById('inputGoalBed').value);
+  STORE.set('goalWakeTime', document.getElementById('inputGoalWake').value);
+  STORE.del('oauthToken'); STORE.del('oauthExpiry');
   alert('保存しました');
-  showScreen('main');
-  updateSleepState();
+  showScreen('main'); updateSleepState();
 });
 
-// ---- Google Calendar API ----
-async function createEvent(token, summary, start, end) {
-  const cfg = getConfig();
-  const res = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cfg.calendarId)}/events`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        summary,
-        start: { dateTime: start.toISOString() },
-        end:   { dateTime: end.toISOString() },
-      }),
-    }
-  );
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${res.status}`);
-  }
-  return res.json();
-}
-
-// ---- 起動時処理 ----
+// ---- On load ----
 window.addEventListener('load', () => {
   const tokenObj = parseTokenFromHash();
   if (tokenObj) {
     saveToken(tokenObj);
     history.replaceState(null, '', location.pathname);
-
     const action = STORE.get('pendingAction');
     STORE.del('pendingAction');
-
     if (action === 'wake') { processSleepDone(tokenObj.token); return; }
     if (action === 'prep') { processPrepDone(tokenObj.token); return; }
   }
 
   const cfg = getConfig();
-  if (!cfg.clientId) {
-    loadSettingsUI();
-    showScreen('settings');
-    return;
-  }
-
-  // 準備中だった場合は準備画面へ
-  if (STORE.get('prepStart')) {
-    showScreen('prep');
-    updatePrepState();
-    return;
-  }
+  if (!cfg.clientId) { loadSettingsUI(); showScreen('settings'); return; }
+  if (STORE.get('prepStart')) { showScreen('prep'); updatePrepState(); return; }
 
   showScreen('main');
   updateSleepState();
