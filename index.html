@@ -21,7 +21,6 @@
       --btn-outline-bg: #fff;
       --btn-outline-fg: #000;
       --card-bg: #f8f8f8;
-      --accent: #000;
     }
 
     body {
@@ -45,8 +44,7 @@
       color: var(--muted);
     }
 
-    /* ---- Main screen ---- */
-    #main { width: 100%; max-width: 320px; text-align: center; }
+    #main, #prep, #done, #settings { width: 100%; max-width: 320px; text-align: center; }
 
     .time-display {
       font-size: 56px;
@@ -74,10 +72,7 @@
       -webkit-appearance: none;
     }
     .btn:active { opacity: 0.6; }
-    .btn-primary {
-      background: var(--btn-bg);
-      color: var(--btn-fg);
-    }
+    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
     .btn-outline {
       background: var(--btn-outline-bg);
       color: var(--btn-outline-fg);
@@ -89,29 +84,38 @@
       padding: 12px;
       margin-top: 10px;
     }
+    .btn-ghost {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 12px;
+      margin-top: 8px;
+      cursor: pointer;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    .btn-ghost:active { opacity: 0.5; }
 
-    /* ---- Sleeping state ---- */
-    .sleep-info {
+    .info-card {
       background: var(--card-bg);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 24px;
       text-align: left;
     }
-    .sleep-info .label {
+    .info-card .label {
       font-size: 12px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 6px;
     }
-    .sleep-info .value {
+    .info-card .value {
       font-size: 28px;
       font-weight: 300;
     }
 
-    /* ---- Done screen ---- */
-    #done { width: 100%; max-width: 320px; text-align: center; }
     .result-card {
       background: var(--card-bg);
       border-radius: 14px;
@@ -129,6 +133,7 @@
     .result-row:last-child { border-bottom: none; }
     .result-row .key { font-size: 13px; color: var(--muted); }
     .result-row .val { font-size: 15px; font-weight: 500; }
+
     .done-msg {
       font-size: 13px;
       color: var(--muted);
@@ -137,11 +142,7 @@
     .done-msg.success { color: #333; }
     .done-msg.error { color: #c00; }
 
-    /* ---- Settings screen ---- */
-    #settings {
-      width: 100%;
-      max-width: 320px;
-    }
+    #settings { text-align: left; }
     .settings-title {
       font-size: 20px;
       font-weight: 600;
@@ -175,7 +176,6 @@
       line-height: 1.4;
     }
 
-    /* ---- Nav ---- */
     .nav-gear {
       position: fixed;
       top: 20px;
@@ -200,20 +200,21 @@
   </svg>
 </button>
 
-<!-- Main screen -->
+<!-- 睡眠メイン画面 -->
 <div id="main">
   <h1>睡眠記録</h1>
   <div class="time-display" id="clock">--:--</div>
   <div class="date-display" id="dateLabel"></div>
 
-  <!-- State: idle (not sleeping) -->
+  <!-- 待機中 -->
   <div id="stateIdle">
     <button class="btn btn-primary" id="btnSleep">今から寝る</button>
+    <button class="btn btn-ghost" id="btnSkipToPrep">準備を始める →</button>
   </div>
 
-  <!-- State: sleeping -->
+  <!-- 就寝中 -->
   <div id="stateSleeping" class="hidden">
-    <div class="sleep-info">
+    <div class="info-card">
       <div class="label">就寝</div>
       <div class="value" id="sleepStartLabel">--:--</div>
     </div>
@@ -222,28 +223,52 @@
   </div>
 </div>
 
-<!-- Done screen -->
+<!-- 準備画面 -->
+<div id="prep" class="hidden">
+  <h1>準備</h1>
+  <div class="time-display" id="clockPrep">--:--</div>
+  <div class="date-display" id="dateLabelPrep"></div>
+
+  <!-- 待機中 -->
+  <div id="prepStateIdle">
+    <button class="btn btn-primary" id="btnPrepStart">準備を始める</button>
+    <button class="btn btn-ghost" id="btnPrepBackToSleep">← 睡眠画面に戻る</button>
+  </div>
+
+  <!-- 準備中 -->
+  <div id="prepStateRunning" class="hidden">
+    <div class="info-card">
+      <div class="label">開始</div>
+      <div class="value" id="prepStartLabel">--:--</div>
+    </div>
+    <button class="btn btn-primary" id="btnPrepDone">準備完了！</button>
+    <button class="btn btn-outline btn-small" id="btnCancelPrep">キャンセル</button>
+  </div>
+</div>
+
+<!-- 完了画面 -->
 <div id="done" class="hidden">
-  <h1>記録完了</h1>
+  <h1 id="doneTitle">記録完了</h1>
   <div class="result-card">
     <div class="result-row">
-      <span class="key">就寝</span>
+      <span class="key" id="doneKeyStart">開始</span>
       <span class="val" id="doneStart">--:--</span>
     </div>
     <div class="result-row">
-      <span class="key">起床</span>
+      <span class="key" id="doneKeyEnd">終了</span>
       <span class="val" id="doneEnd">--:--</span>
     </div>
     <div class="result-row">
-      <span class="key">睡眠時間</span>
+      <span class="key" id="doneKeyDur">時間</span>
       <span class="val" id="doneDuration">--</span>
     </div>
   </div>
   <p class="done-msg" id="doneMsg">Googleカレンダーに登録中...</p>
+  <button class="btn btn-primary" id="btnDoneNext" class="hidden">次へ：準備を始める</button>
   <button class="btn btn-outline" id="btnDoneBack">戻る</button>
 </div>
 
-<!-- Settings screen -->
+<!-- 設定画面 -->
 <div id="settings" class="hidden">
   <div class="settings-title">設定</div>
 
@@ -264,19 +289,16 @@
 </div>
 
 <script>
-// ---- Storage ----
 const STORE = {
   get: k => localStorage.getItem(k),
   set: (k, v) => localStorage.setItem(k, v),
   del: k => localStorage.removeItem(k),
 };
 
-// ---- Round to nearest 15 min ----
 function roundTo15(date) {
   const d = new Date(date);
   const mins = d.getMinutes() + d.getSeconds() / 60;
-  const rounded = Math.round(mins / 15) * 15;
-  d.setMinutes(rounded, 0, 0);
+  d.setMinutes(Math.round(mins / 15) * 15, 0, 0);
   return d;
 }
 
@@ -293,7 +315,6 @@ function fmtDuration(ms) {
   return m === 0 ? `${h}時間` : `${h}時間${m}分`;
 }
 
-// ---- Config ----
 function getConfig() {
   return {
     clientId:   STORE.get('clientId')   || '',
@@ -301,8 +322,9 @@ function getConfig() {
   };
 }
 
-// ---- OAuth (redirect flow for iOS Safari) ----
-function redirectToAuth() {
+// ---- OAuth ----
+function redirectToAuth(pendingAction) {
+  STORE.set('pendingAction', pendingAction);
   const cfg = getConfig();
   const redirectUri = location.origin + location.pathname;
   const params = new URLSearchParams({
@@ -331,29 +353,34 @@ function getCachedToken() {
   return null;
 }
 
-function saveToken(tokenObj) {
-  STORE.set('oauthToken', tokenObj.token);
-  STORE.set('oauthExpiry', tokenObj.expiry);
+function saveToken(obj) {
+  STORE.set('oauthToken', obj.token);
+  STORE.set('oauthExpiry', obj.expiry);
 }
 
 // ---- Clock ----
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent = fmtTime(now);
-  document.getElementById('dateLabel').textContent = fmtDate(now);
+  const t = fmtTime(now);
+  const d = fmtDate(now);
+  document.getElementById('clock').textContent = t;
+  document.getElementById('dateLabel').textContent = d;
+  document.getElementById('clockPrep').textContent = t;
+  document.getElementById('dateLabelPrep').textContent = d;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
 // ---- Screen management ----
-const screens = ['main', 'done', 'settings'];
+const screens = ['main', 'prep', 'done', 'settings'];
 function showScreen(id) {
   screens.forEach(s => document.getElementById(s).classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
-  document.getElementById('gearBtn').classList.toggle('hidden', id !== 'main');
+  document.getElementById('gearBtn').classList.toggle('hidden', id === 'settings');
 }
 
-function updateMainState() {
+// ---- 睡眠 ----
+function updateSleepState() {
   const sleeping = STORE.get('sleepStart');
   document.getElementById('stateIdle').classList.toggle('hidden', !!sleeping);
   document.getElementById('stateSleeping').classList.toggle('hidden', !sleeping);
@@ -362,60 +389,41 @@ function updateMainState() {
   }
 }
 
-// ---- Sleep button ----
 document.getElementById('btnSleep').addEventListener('click', () => {
   const cfg = getConfig();
-  if (!cfg.clientId || !cfg.calendarId) {
-    alert('設定からClient IDとカレンダーIDを入力してください。');
-    showScreen('settings');
-    return;
-  }
+  if (!cfg.clientId) { alert('設定からClient IDを入力してください。'); showScreen('settings'); return; }
   STORE.set('sleepStart', Date.now());
-  updateMainState();
+  updateSleepState();
 });
 
-// ---- Wake button ----
 document.getElementById('btnWake').addEventListener('click', () => {
-  const sleepRaw = STORE.get('sleepStart');
-  if (!sleepRaw) return;
-
-  // Save wake time for after OAuth redirect
+  if (!STORE.get('sleepStart')) return;
   STORE.set('pendingWake', Date.now());
-
   const token = getCachedToken();
-  if (token) {
-    processPendingWake(token);
-  } else {
-    redirectToAuth();
-  }
+  token ? processSleepDone(token) : redirectToAuth('wake');
 });
 
-async function processPendingWake(token) {
+async function processSleepDone(token) {
   const sleepRaw = STORE.get('sleepStart');
   const wakeRaw  = STORE.get('pendingWake');
   if (!sleepRaw || !wakeRaw) return;
 
-  const startRounded = roundTo15(new Date(+sleepRaw));
-  const endRounded   = roundTo15(new Date(+wakeRaw));
-
-  document.getElementById('doneStart').textContent = fmtTime(startRounded);
-  document.getElementById('doneEnd').textContent   = fmtTime(endRounded);
-  const dur = endRounded - startRounded;
-  document.getElementById('doneDuration').textContent = dur > 0 ? fmtDuration(dur) : '--';
-
-  showScreen('done');
-  document.getElementById('doneMsg').textContent = 'Googleカレンダーに登録中...';
-  document.getElementById('doneMsg').className = 'done-msg';
-
+  const start = roundTo15(new Date(+sleepRaw));
+  const end   = roundTo15(new Date(+wakeRaw));
   STORE.del('sleepStart');
   STORE.del('pendingWake');
 
+  showDone('睡眠完了', '就寝', '起床', '睡眠時間', start, end);
+
   try {
-    await createCalendarEvent(token, startRounded, endRounded);
+    await createEvent(token, '睡眠', start, end);
     document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
     document.getElementById('doneMsg').className = 'done-msg success';
+    // 睡眠完了後は「準備を始める」ボタンを表示
+    const nextBtn = document.getElementById('btnDoneNext');
+    nextBtn.textContent = '次へ：準備を始める';
+    nextBtn.classList.remove('hidden');
   } catch (e) {
-    console.error(e);
     document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
     document.getElementById('doneMsg').className = 'done-msg error';
   }
@@ -425,16 +433,102 @@ document.getElementById('btnCancelSleep').addEventListener('click', () => {
   if (confirm('就寝記録をキャンセルしますか？')) {
     STORE.del('sleepStart');
     STORE.del('pendingWake');
-    updateMainState();
+    updateSleepState();
   }
+});
+
+// ---- 準備 ----
+function updatePrepState() {
+  const running = STORE.get('prepStart');
+  document.getElementById('prepStateIdle').classList.toggle('hidden', !!running);
+  document.getElementById('prepStateRunning').classList.toggle('hidden', !running);
+  if (running) {
+    document.getElementById('prepStartLabel').textContent = fmtTime(roundTo15(new Date(+running)));
+  }
+}
+
+document.getElementById('btnSkipToPrep').addEventListener('click', () => {
+  showScreen('prep');
+  updatePrepState();
+});
+
+document.getElementById('btnPrepBackToSleep').addEventListener('click', () => {
+  showScreen('main');
+  updateSleepState();
+});
+
+document.getElementById('btnPrepStart').addEventListener('click', () => {
+  const cfg = getConfig();
+  if (!cfg.clientId) { alert('設定からClient IDを入力してください。'); showScreen('settings'); return; }
+  STORE.set('prepStart', Date.now());
+  updatePrepState();
+});
+
+document.getElementById('btnPrepDone').addEventListener('click', () => {
+  if (!STORE.get('prepStart')) return;
+  STORE.set('pendingPrepEnd', Date.now());
+  const token = getCachedToken();
+  token ? processPrepDone(token) : redirectToAuth('prep');
+});
+
+async function processPrepDone(token) {
+  const startRaw = STORE.get('prepStart');
+  const endRaw   = STORE.get('pendingPrepEnd');
+  if (!startRaw || !endRaw) return;
+
+  const start = roundTo15(new Date(+startRaw));
+  const end   = roundTo15(new Date(+endRaw));
+  STORE.del('prepStart');
+  STORE.del('pendingPrepEnd');
+
+  showDone('準備完了', '開始', '終了', '所要時間', start, end);
+
+  try {
+    await createEvent(token, '準備', start, end);
+    document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
+    document.getElementById('doneMsg').className = 'done-msg success';
+    document.getElementById('btnDoneNext').classList.add('hidden');
+  } catch (e) {
+    document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
+    document.getElementById('doneMsg').className = 'done-msg error';
+  }
+}
+
+document.getElementById('btnCancelPrep').addEventListener('click', () => {
+  if (confirm('準備記録をキャンセルしますか？')) {
+    STORE.del('prepStart');
+    STORE.del('pendingPrepEnd');
+    updatePrepState();
+  }
+});
+
+// ---- 完了画面 ----
+function showDone(title, keyStart, keyEnd, keyDur, start, end) {
+  document.getElementById('doneTitle').textContent = title;
+  document.getElementById('doneKeyStart').textContent = keyStart;
+  document.getElementById('doneKeyEnd').textContent = keyEnd;
+  document.getElementById('doneKeyDur').textContent = keyDur;
+  document.getElementById('doneStart').textContent = fmtTime(start);
+  document.getElementById('doneEnd').textContent   = fmtTime(end);
+  const dur = end - start;
+  document.getElementById('doneDuration').textContent = dur > 0 ? fmtDuration(dur) : '--';
+  document.getElementById('doneMsg').textContent = 'Googleカレンダーに登録中...';
+  document.getElementById('doneMsg').className = 'done-msg';
+  document.getElementById('btnDoneNext').classList.add('hidden');
+  showScreen('done');
+}
+
+document.getElementById('btnDoneNext').addEventListener('click', () => {
+  showScreen('prep');
+  updatePrepState();
 });
 
 document.getElementById('btnDoneBack').addEventListener('click', () => {
   showScreen('main');
-  updateMainState();
+  updateSleepState();
 });
 
-// ---- Settings ----
+// ---- 設定 ----
 function loadSettingsUI() {
   const cfg = getConfig();
   document.getElementById('inputClientId').value   = cfg.clientId;
@@ -447,7 +541,7 @@ document.getElementById('gearBtn').addEventListener('click', () => {
 });
 document.getElementById('btnBackFromSettings').addEventListener('click', () => {
   showScreen('main');
-  updateMainState();
+  updateSleepState();
 });
 document.getElementById('btnSaveSettings').addEventListener('click', () => {
   const clientId   = document.getElementById('inputClientId').value.trim();
@@ -460,26 +554,22 @@ document.getElementById('btnSaveSettings').addEventListener('click', () => {
   STORE.del('oauthExpiry');
   alert('保存しました');
   showScreen('main');
-  updateMainState();
+  updateSleepState();
 });
 
 // ---- Google Calendar API ----
-async function createCalendarEvent(token, start, end) {
+async function createEvent(token, summary, start, end) {
   const cfg = getConfig();
-  const body = {
-    summary: '睡眠',
-    start: { dateTime: start.toISOString() },
-    end:   { dateTime: end.toISOString() },
-  };
   const res = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cfg.calendarId)}/events`,
     {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary,
+        start: { dateTime: start.toISOString() },
+        end:   { dateTime: end.toISOString() },
+      }),
     }
   );
   if (!res.ok) {
@@ -489,20 +579,18 @@ async function createCalendarEvent(token, start, end) {
   return res.json();
 }
 
-// ---- On load: handle OAuth redirect or restore state ----
+// ---- 起動時処理 ----
 window.addEventListener('load', () => {
-  // Check if returning from OAuth redirect
   const tokenObj = parseTokenFromHash();
   if (tokenObj) {
     saveToken(tokenObj);
-    // Clean up URL hash
     history.replaceState(null, '', location.pathname);
 
-    // If there's a pending wake, process it
-    if (STORE.get('pendingWake')) {
-      processPendingWake(tokenObj.token);
-      return;
-    }
+    const action = STORE.get('pendingAction');
+    STORE.del('pendingAction');
+
+    if (action === 'wake') { processSleepDone(tokenObj.token); return; }
+    if (action === 'prep') { processPrepDone(tokenObj.token); return; }
   }
 
   const cfg = getConfig();
@@ -512,8 +600,15 @@ window.addEventListener('load', () => {
     return;
   }
 
+  // 準備中だった場合は準備画面へ
+  if (STORE.get('prepStart')) {
+    showScreen('prep');
+    updatePrepState();
+    return;
+  }
+
   showScreen('main');
-  updateMainState();
+  updateSleepState();
 });
 </script>
 </body>
