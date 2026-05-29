@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="睡眠記録">
+  <title>睡眠記録</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fff;
+      --fg: #000;
+      --muted: #888;
+      --border: #ddd;
+      --btn-bg: #000;
+      --btn-fg: #fff;
+      --btn-outline-bg: #fff;
+      --btn-outline-fg: #000;
+      --card-bg: #f8f8f8;
+      --accent: #000;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 40px;
+      color: var(--muted);
+    }
+
+    /* ---- Main screen ---- */
+    #main { width: 100%; max-width: 320px; text-align: center; }
+
+    .time-display {
+      font-size: 56px;
+      font-weight: 200;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .date-display {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 48px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      -webkit-appearance: none;
+    }
+    .btn:active { opacity: 0.6; }
+    .btn-primary {
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+    }
+    .btn-outline {
+      background: var(--btn-outline-bg);
+      color: var(--btn-outline-fg);
+      border: 2px solid var(--fg);
+      margin-top: 14px;
+    }
+    .btn-small {
+      font-size: 14px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    /* ---- Sleeping state ---- */
+    .sleep-info {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .sleep-info .label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .sleep-info .value {
+      font-size: 28px;
+      font-weight: 300;
+    }
+
+    /* ---- Done screen ---- */
+    #done { width: 100%; max-width: 320px; text-align: center; }
+    .result-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 24px 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .key { font-size: 13px; color: var(--muted); }
+    .result-row .val { font-size: 15px; font-weight: 500; }
+    .done-msg {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .done-msg.success { color: #333; }
+    .done-msg.error { color: #c00; }
+
+    /* ---- Settings screen ---- */
+    #settings {
+      width: 100%;
+      max-width: 320px;
+    }
+    .settings-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .field input {
+      width: 100%;
+      padding: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--fg);
+      -webkit-appearance: none;
+      outline: none;
+    }
+    .field input:focus { border-color: var(--fg); }
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    /* ---- Nav ---- */
+    .nav-gear {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-gear svg { display: block; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<button class="nav-gear" id="gearBtn" title="設定">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </svg>
+</button>
+
+<!-- Main screen -->
+<div id="main">
+  <h1>睡眠記録</h1>
+  <div class="time-display" id="clock">--:--</div>
+  <div class="date-display" id="dateLabel"></div>
+
+  <!-- State: idle (not sleeping) -->
+  <div id="stateIdle">
+    <button class="btn btn-primary" id="btnSleep">今から寝る</button>
+  </div>
+
+  <!-- State: sleeping -->
+  <div id="stateSleeping" class="hidden">
+    <div class="sleep-info">
+      <div class="label">就寝</div>
+      <div class="value" id="sleepStartLabel">--:--</div>
+    </div>
+    <button class="btn btn-primary" id="btnWake">起きた！</button>
+    <button class="btn btn-outline btn-small" id="btnCancelSleep">キャンセル</button>
+  </div>
+</div>
+
+<!-- Done screen -->
+<div id="done" class="hidden">
+  <h1>記録完了</h1>
+  <div class="result-card">
+    <div class="result-row">
+      <span class="key">就寝</span>
+      <span class="val" id="doneStart">--:--</span>
+    </div>
+    <div class="result-row">
+      <span class="key">起床</span>
+      <span class="val" id="doneEnd">--:--</span>
+    </div>
+    <div class="result-row">
+      <span class="key">睡眠時間</span>
+      <span class="val" id="doneDuration">--</span>
+    </div>
+  </div>
+  <p class="done-msg" id="doneMsg">Googleカレンダーに登録中...</p>
+  <button class="btn btn-outline" id="btnDoneBack">戻る</button>
+</div>
+
+<!-- Settings screen -->
+<div id="settings" class="hidden">
+  <div class="settings-title">設定</div>
+
+  <div class="field">
+    <label>Google Client ID</label>
+    <input type="text" id="inputClientId" placeholder="xxx.apps.googleusercontent.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <p class="hint">Google Cloud Console › OAuth 2.0 クライアント ID</p>
+  </div>
+
+  <div class="field">
+    <label>カレンダー ID</label>
+    <input type="text" id="inputCalendarId" placeholder="primary または xxx@group.calendar.google.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <p class="hint">Googleカレンダー設定 › カレンダーの統合 より確認</p>
+  </div>
+
+  <button class="btn btn-primary" id="btnSaveSettings">保存</button>
+  <button class="btn btn-outline btn-small" id="btnBackFromSettings">戻る</button>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// ---- Storage ----
+const STORE = {
+  get: k => localStorage.getItem(k),
+  set: (k, v) => localStorage.setItem(k, v),
+  del: k => localStorage.removeItem(k),
+};
+
+// ---- Round to nearest 15 min ----
+function roundTo15(date) {
+  const d = new Date(date);
+  const mins = d.getMinutes() + d.getSeconds() / 60;
+  const rounded = Math.round(mins / 15) * 15;
+  d.setMinutes(rounded, 0, 0);
+  return d;
+}
+
+function fmtTime(date) {
+  return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function fmtDate(date) {
+  return date.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+}
+function fmtDuration(ms) {
+  const totalMin = Math.round(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `${h}時間` : `${h}時間${m}分`;
+}
+
+// ---- Clock ----
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = fmtTime(now);
+  document.getElementById('dateLabel').textContent = fmtDate(now);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ---- Screen management ----
+const screens = ['main', 'done', 'settings'];
+function showScreen(id) {
+  screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('gearBtn').classList.toggle('hidden', id !== 'main');
+}
+
+function updateMainState() {
+  const sleeping = STORE.get('sleepStart');
+  document.getElementById('stateIdle').classList.toggle('hidden', !!sleeping);
+  document.getElementById('stateSleeping').classList.toggle('hidden', !sleeping);
+  if (sleeping) {
+    document.getElementById('sleepStartLabel').textContent = fmtTime(roundTo15(new Date(+sleeping)));
+  }
+}
+updateMainState();
+
+// ---- Sleep button ----
+document.getElementById('btnSleep').addEventListener('click', () => {
+  const cfg = getConfig();
+  if (!cfg.clientId || !cfg.calendarId) {
+    alert('設定からClient IDとカレンダーIDを入力してください。');
+    showScreen('settings');
+    return;
+  }
+  STORE.set('sleepStart', Date.now());
+  updateMainState();
+});
+
+// ---- Wake button ----
+document.getElementById('btnWake').addEventListener('click', async () => {
+  const sleepRaw = STORE.get('sleepStart');
+  if (!sleepRaw) return;
+
+  const startRounded = roundTo15(new Date(+sleepRaw));
+  const endRounded   = roundTo15(new Date());
+
+  document.getElementById('doneStart').textContent = fmtTime(startRounded);
+  document.getElementById('doneEnd').textContent   = fmtTime(endRounded);
+  const dur = endRounded - startRounded;
+  document.getElementById('doneDuration').textContent = dur > 0 ? fmtDuration(dur) : '--';
+
+  showScreen('done');
+  document.getElementById('doneMsg').textContent = 'Googleカレンダーに登録中...';
+  document.getElementById('doneMsg').className = 'done-msg';
+
+  STORE.del('sleepStart');
+
+  try {
+    await createCalendarEvent(startRounded, endRounded);
+    document.getElementById('doneMsg').textContent = 'カレンダーに登録しました ✓';
+    document.getElementById('doneMsg').className = 'done-msg success';
+  } catch (e) {
+    console.error(e);
+    document.getElementById('doneMsg').textContent = '登録に失敗しました: ' + (e.message || e);
+    document.getElementById('doneMsg').className = 'done-msg error';
+  }
+});
+
+document.getElementById('btnCancelSleep').addEventListener('click', () => {
+  if (confirm('就寝記録をキャンセルしますか？')) {
+    STORE.del('sleepStart');
+    updateMainState();
+  }
+});
+
+document.getElementById('btnDoneBack').addEventListener('click', () => {
+  showScreen('main');
+  updateMainState();
+});
+
+// ---- Settings ----
+function getConfig() {
+  return {
+    clientId:   STORE.get('clientId')   || '',
+    calendarId: STORE.get('calendarId') || 'primary',
+  };
+}
+
+function loadSettingsUI() {
+  const cfg = getConfig();
+  document.getElementById('inputClientId').value   = cfg.clientId;
+  document.getElementById('inputCalendarId').value = cfg.calendarId;
+}
+
+document.getElementById('gearBtn').addEventListener('click', () => {
+  loadSettingsUI();
+  showScreen('settings');
+});
+document.getElementById('btnBackFromSettings').addEventListener('click', () => {
+  showScreen('main');
+  updateMainState();
+});
+document.getElementById('btnSaveSettings').addEventListener('click', () => {
+  const clientId   = document.getElementById('inputClientId').value.trim();
+  const calendarId = document.getElementById('inputCalendarId').value.trim();
+  if (!clientId) { alert('Client IDを入力してください'); return; }
+  if (!calendarId) { alert('カレンダーIDを入力してください'); return; }
+  STORE.set('clientId', clientId);
+  STORE.set('calendarId', calendarId);
+  tokenCache = null; // reset token on settings change
+  alert('保存しました');
+  showScreen('main');
+  updateMainState();
+});
+
+// ---- Google Calendar API ----
+let tokenCache = null;
+
+function getAccessToken(clientId) {
+  return new Promise((resolve, reject) => {
+    if (tokenCache && tokenCache.expiry > Date.now() + 60000) {
+      return resolve(tokenCache.token);
+    }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'https://www.googleapis.com/auth/calendar.events',
+      callback: (resp) => {
+        if (resp.error) return reject(new Error(resp.error));
+        tokenCache = {
+          token: resp.access_token,
+          expiry: Date.now() + resp.expires_in * 1000,
+        };
+        resolve(resp.access_token);
+      },
+      error_callback: (err) => reject(new Error(err.type || 'auth error')),
+    });
+    client.requestAccessToken({ prompt: tokenCache ? '' : 'none' });
+  }).catch(() => {
+    // If silent fails, show consent
+    return new Promise((resolve, reject) => {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: getConfig().clientId,
+        scope: 'https://www.googleapis.com/auth/calendar.events',
+        callback: (resp) => {
+          if (resp.error) return reject(new Error(resp.error));
+          tokenCache = {
+            token: resp.access_token,
+            expiry: Date.now() + resp.expires_in * 1000,
+          };
+          resolve(resp.access_token);
+        },
+      });
+      client.requestAccessToken();
+    });
+  });
+}
+
+async function createCalendarEvent(start, end) {
+  const cfg = getConfig();
+  if (!cfg.clientId) throw new Error('Client IDが未設定です');
+
+  const token = await getAccessToken(cfg.clientId);
+
+  const body = {
+    summary: '睡眠',
+    start: { dateTime: start.toISOString() },
+    end:   { dateTime: end.toISOString() },
+  };
+
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cfg.calendarId)}/events`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ---- Initial check: show settings if not configured ----
+window.addEventListener('load', () => {
+  const cfg = getConfig();
+  if (!cfg.clientId) {
+    loadSettingsUI();
+    showScreen('settings');
+  }
+});
+</script>
+</body>
+</html>
